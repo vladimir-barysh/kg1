@@ -33,6 +33,33 @@ public class Affine extends JFrame {
         static Mat4 scale(double sx,double sy,double sz){
             Mat4 r = new Mat4(); r.m[0]=sx; r.m[5]=sy; r.m[10]=sz; r.m[15]=1; return r;
         }
+        static Mat4 rotationX(double a){
+            double c=Math.cos(a), s=Math.sin(a);
+            Mat4 r=identity();
+            r.m[5]=c;
+            r.m[6]=s;
+            r.m[9]=-s;
+            r.m[10]=c;
+            return r;
+        }
+        static Mat4 rotationY(double a){
+            double c=Math.cos(a), s=Math.sin(a);
+            Mat4 r=identity();
+            r.m[0]=c;
+            r.m[2]=-s;
+            r.m[8]=s;
+            r.m[10]=c;
+            return r;
+        }
+        static Mat4 rotationZ(double a){
+            double c=Math.cos(a), s=Math.sin(a);
+            Mat4 r=identity();
+            r.m[0]=c;
+            r.m[1]=s;
+            r.m[4]=-s;
+            r.m[5]=c;
+            return r;
+        }
         static Mat4 rotationAroundAxis(Vec3 axisUnit, double angle){
             double x=axisUnit.x, y=axisUnit.y, z=axisUnit.z;
             double c=Math.cos(angle), s=Math.sin(angle), t=1-c;
@@ -188,6 +215,9 @@ public class Affine extends JFrame {
         }
         void translate(double dx,double dy,double dz){ modelMatrix = Mat4.translation(dx,dy,dz).mul(modelMatrix); }
         void scaleUniform(double s){ modelMatrix = Mat4.scale(s,s,s).mul(modelMatrix); }
+        void rotateX(double a){ modelMatrix = Mat4.rotationX(a).mul(modelMatrix); }
+        void rotateY(double a){ modelMatrix = Mat4.rotationY(a).mul(modelMatrix); }
+        void rotateZ(double a){ modelMatrix = Mat4.rotationZ(a).mul(modelMatrix); }
         void rotateAroundLine(Vec3 P1, Vec3 P2, double angle){
             Vec3 axis = P2.sub(P1); if(axis.len()==0) return;
             Mat4 T1 = Mat4.translation(-P1.x, -P1.y, -P1.z);
@@ -272,6 +302,7 @@ public class Affine extends JFrame {
         private void bindKeys(){
             final double t = 0.1;
             final double s = 1.05;
+            final double rotationAngle = Math.toRadians(5);
 
             InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             ActionMap am = getActionMap();
@@ -294,6 +325,24 @@ public class Affine extends JFrame {
 
             im.put(KeyStroke.getKeyStroke("E"), "move-Z");
             am.put("move-Z", new AbstractAction(){ public void actionPerformed(ActionEvent e){ translate(0, 0, -t); repaint(); }});
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "rotate+X");
+            am.put("rotate+X", new AbstractAction(){ public void actionPerformed(ActionEvent e){ rotateX(rotationAngle); repaint(); }});
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "rotate-X");
+            am.put("rotate-X", new AbstractAction(){ public void actionPerformed(ActionEvent e){ rotateX(-rotationAngle); repaint(); }});
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "rotate+Y");
+            am.put("rotate+Y", new AbstractAction(){ public void actionPerformed(ActionEvent e){ rotateY(rotationAngle); repaint(); }});
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "rotate-Y");
+            am.put("rotate-Y", new AbstractAction(){ public void actionPerformed(ActionEvent e){ rotateY(-rotationAngle); repaint(); }});
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "rotate+Z");
+            am.put("rotate+Z", new AbstractAction(){ public void actionPerformed(ActionEvent e){ rotateZ(rotationAngle); repaint(); }});
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "rotate-Z");
+            am.put("rotate-Z", new AbstractAction(){ public void actionPerformed(ActionEvent e){ rotateZ(-rotationAngle); repaint(); }});
 
             // --- масштаб ---
             im.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, 0), "scale+");
@@ -406,6 +455,7 @@ public class Affine extends JFrame {
                             "<b>Управление:</b><br>" +
                             "W/S,A/D,Q/E — перемещение<br>" +
                             "+/- — масштаб<br>" +
+                            "Стрелки/PgUp/PgUp - вращение вокруг осей<br>" +
                             "</html>"
             );
             help.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
